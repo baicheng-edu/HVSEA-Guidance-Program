@@ -1,0 +1,59 @@
+# 决策与约束变更记录（decision-log）
+
+只追加，不改写历史。正文文档（plan.md、entitlements.md、AGENTS.md）只保留最新权威版本；变化的来龙去脉记在这里。
+格式：编号 ｜ 日期 ｜ 决策 ｜ 影响的文档。
+
+## 2026-11-10　产品负责人对规划 V0.2 的确认
+
+| 编号 | 决策 | 影响 |
+|---|---|---|
+| D-001 | 公司资质：域名 ICP 备案已完成；微信支付、小程序主体开通中，12 月内确保完成 | plan §九、§十；AGENTS §2 |
+| D-002 | 权益原则改为“历史免费，今年付费”：不涉及 2027 数据的功能全部免费开放，吸引注册；使用中持续教育用户历史数据参考价值有限 | entitlements §1；plan §一、§十一 |
+| D-003 | 业务判断写入定位：各校单独命题、无统一排名，录取难度看计划数与报名人数；差异化是 T+1 一手报名数据 | plan §一；AGENTS §1 |
+| D-004 | 会员权益：全部学校报名竞争度可参考，志愿推荐与方案不限次数 | entitlements §3 |
+| D-005 | 非会员单校解锁：68 元/一所学校的一个专业，288 元/一所学校的全部专业 | entitlements §4 |
+| D-006 | 志愿方案允许保存，免费用户赠送一次体验 | entitlements §6；Q4 |
+| D-007 | 新增 AI 对话志愿指导：付费用户 100 次/天，免费用户 10 次/天；免费用户在 2027 填报阶段不提供 AI 实时志愿指导；实时热门数据不提供给免费用户的 AI | plan 模块 N；entitlements §5；AGENTS §6.6 |
+| D-008 | 院校名单用手里已有的 2024–2026 年名单；2027 年名单未公布，公布后校准 | plan §四 A、§六；AGENTS §6.1 |
+| D-009 | 不再补 2026 年以前的录取数据（无历史参考价值）；去掉“多年趋势”功能 | plan §四 D；entitlements §3.1；AGENTS §6.1、§10 |
+| D-010 | 大模型暂不设预算 | AGENTS §6.6 |
+| D-011 | 终端顺序确认：PC Web → 微信 H5 → 小程序 | plan §九 |
+| D-012 | 2027 官方时间节点等考试院 1 月中旬通知后校准里程碑 | plan §九 |
+
+## 2026-11-10　规划 V0.2 → V0.3 的结构调整（由 D-001 至 D-012 推出）
+
+| 编号 | 调整 | 说明 |
+|---|---|---|
+| C-001 | 新增模块 N（AI 志愿助手）与后端批次 9 | 来自 D-007 |
+| C-002 | 模块 M 增加单校解锁；微信支付仍在增强阶段，商户号 12 月就绪后可提前 | 来自 D-001、D-005 |
+| C-003 | 志愿推荐以今年报名竞争度为主依据，去年数据为辅 | 来自 D-003 |
+| C-004 | Demo 页面由约 13 页增至约 15 页（AI 对话页、科普页）；身份切换器增加“单校解锁用户” | 来自 D-005、D-007 |
+| C-005 | 新增 `docs/entitlements.md` 作为权益唯一依据；新增 `HistoryDataNotice` 组件要求 | 来自 D-002 |
+| C-006 | 面向用户的 AI 对话模型不写死，经 `LLMProvider` 抽象；选型需用户同意 | 合规检索结果，见 Q11 |
+| C-007 | 新增收费与 AI 合规待确认项（经营性 ICP、服务号、模型备案） | 见 Q11–Q13 |
+
+## 项目起点的既有决策（来自 AGENTS.md V1.0，保留）
+
+| 编号 | 决策 |
+|---|---|
+| B-001 | 技术栈：Vue 3 + TS + Vite + Element Plus；FastAPI + PostgreSQL 16 + Redis；模块化单体；pnpm monorepo；OpenAPI 3.1 契约先行 |
+| B-002 | 只用官方来源数据；每条事实带 source_url、source_type、fetched_at、verified_status |
+| B-003 | 报名人数口径为“第一志愿第一专业”，T+1 快照；竞争度 = 人数 ÷ 参考计划数，分母缺失返回 null |
+| B-004 | 四个关口：契约冻结、入库数据抽检、会员权益与支付逻辑、上线前检查 |
+
+## 2026-11-10　文档合并整理（V1.1 → V1.2）：从旧版启动套件补回的规则
+
+对照旧版（agent-kit）逐项核查后，补回以下在 V1.1 重写中丢失、且未被新决策取代的内容：
+
+| 编号 | 补回内容 | 落点 |
+|---|---|---|
+| M-001 | 恢复 `CLAUDE.md`（@引用 AGENTS.md 与 orchestrator.md，主会话启动即进入总调度角色） | 根目录 |
+| M-002 | 恢复子代理 `model:` 分层：architect、code-reviewer 用 opus，其余用 sonnet | .claude/agents/ |
+| M-003 | 恢复契约约定细则：/api/v1、snake_case、page/page_size/items/total、错误体 {code,message,details}、stat_date/scope/plan_basis 枚举、破坏性变更升版本；恢复数据库约定（快照唯一键、staging 分离、主键方案入 ADR） | .claude/agents/architect.md |
+| M-004 | 恢复采集工程细则：原文快照存 data/raw/ 记 sha256、OCR 标记、≥2 秒限速、可识别 UA | .claude/agents/data-collector.md |
+| M-005 | 恢复“大批量抽取先用 5 份简章小样本试跑、交 data-qa 核对后再全量” | .claude/agents/data-collector.md、stage-prompts S1 |
+| M-006 | 恢复“同一问题子代理连续失败 3 次即停下”熔断 | docs/agents/orchestrator.md §6 |
+| M-007 | 恢复 `prompts/recommend-explain.md`（方案页静态解读措辞；与 AI 助手对话解读分工），并补入“无统一排名、提醒复核”口径 | prompts/、AGENTS.md §4、§8 |
+| M-008 | 恢复 data-qa 抽样默认比例“10% 且不少于 20 条，不足全检”（新版原为“按比例”，无默认值） | .claude/agents/data-qa.md |
+
+说明：M-007 中旧版提示词原第 6 条（搭配建议）保留为第 7 条，新增第 6 条为教育用户口径，与 AGENTS.md §6.4 一致。
